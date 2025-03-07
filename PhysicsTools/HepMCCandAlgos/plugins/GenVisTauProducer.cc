@@ -66,16 +66,22 @@ public:
         const reco::GenParticle& genTau = (*genParticles)[idxGenParticle];
         if (abs(genTau.pdgId()) == 15 && genTau.status() == 2) {
           reco::Candidate::LorentzVector daughterVisP4;
+          std::vector<reco::GenParticleRef> daughtersRefs;
           for (const reco::GenParticleRef& daughter : genTau.daughterRefVector()) {
             int abs_pdgId = abs(daughter->pdgId());
             // CV: skip neutrinos
             if (abs_pdgId == 12 || abs_pdgId == 14 || abs_pdgId == 16)
               continue;
             daughterVisP4 += daughter->p4();
+            daughtersRefs.push_back(daughter);
           }
           double dR2 = deltaR2(daughterVisP4, genVisTau);
           if (dR2 < 1.e-4) {
             genVisTau.addMother(reco::GenParticleRef(genParticles, idxGenParticle));
+
+            for (const auto& daughterRef : daughtersRefs) {
+                genVisTau.addDaughter(daughterRef);
+            }
             break;
           }
         }
